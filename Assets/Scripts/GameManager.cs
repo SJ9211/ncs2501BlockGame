@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEditor;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,40 +16,42 @@ public class GameManager : MonoBehaviour
 
     private const string HIGHSCORE_KEY = "HIGHSCORE";
     private const string BESTPLAYER_KEY = "BESTPLAYER";
-    private string name;
-    private int highScore;
-    public string bestPlayer
-    {
-        get {return bestPlayer;}
-    }
+    private const string NONAME = "NoName";
+    private string userName;
 
-    public string Name
+    public string UserName
     {
-        get { return name; }
+        get { return userName; }
         set
         {
-            if (value.Length == 0)
-            {
-                name = "NoName";
-            }
+            // if (value.Length == 0)
+            // {
+            //     userName = NONAME;
+            // }
+            userName = (value.Length == 0) ? NONAME : value;
         }
     }
 
-    public int HighScore
+    public string BestPlayer
+    {
+        get { return PlayerPrefs.GetString(BESTPLAYER_KEY, NONAME); }
+        set { PlayerPrefs.SetString(BESTPLAYER_KEY, value); }
+
+    }
+
+    public int BestScore
     {
         get
         {
-            highScore = PlayerPrefs.GetInt("HIGHSCORE_KEY", 0);
-            bestPlayer = PlayerPrefs.GetString("BESTPLAYER", "NoNmae");
-            return highScore;
+            return PlayerPrefs.GetInt(BESTPLAYER_KEY, 0);
         }
         set
         {
-            if (highScore <= value)
+            if (BestScore <= value)
             {
-                highScore = value;
-                PlayerPrefs.SetInt("HIGHSCORE_KEY", highScore);
-                PlayerPrefs.SetString("BESTPLAYER", bestPlayer);
+
+                PlayerPrefs.SetInt(BESTPLAYER_KEY, value);
+                BestPlayer = userName;
             }
 
         }
@@ -66,8 +70,12 @@ public class GameManager : MonoBehaviour
     }
     private void Start()
     {
-        highScore = HighScore;
-        bestScoreText.text = $"{highScore} : {bestPlayer}";
+        bestScoreText.text = GetBestText();
+    }
+
+    public string GetBestText()
+    {
+        return $"BestPlayer : {BestPlayer} : {BestScore}";
     }
 
     public void UpdateName()
@@ -77,6 +85,17 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         SceneManager.LoadScene("main");
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+    [MenuItem("BlockGame/Reset score")]
+    public static void ResetBestScore()
+    {
+        PlayerPrefs.SetInt(BESTPLAYER_KEY, 0);
+        PlayerPrefs.SetString(BESTPLAYER_KEY, NONAME);
     }
 }
 
